@@ -1,0 +1,55 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: flink-application
+spec:
+  restartNonce: 2
+  image: {{ .Values.flink.image }}
+  podTemplate:
+     spec:
+        containers:
+          - name: flink-main-container
+            volumeMounts:
+              - mountPath: /flink-data
+                name: flink-volume
+        volumes:
+          - name: flink-volume
+            hostPath:
+              # directory location on host
+              path: /tmp/flink
+        imagePullSecrets:
+          - name: registry-creds
+  flinkVersion: v1_15
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "2"
+    state.backend: rocksdb
+    state.backend.incremental: "true"
+    state.backend.rocksdb.localdir: /cache
+    state.savepoints.dir: s3://flink/savepoints
+    state.checkpoints.dir: s3://flink/checkpoints
+    #high-availability: org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory
+    #high-availability.storageDir: s3://flink/ha
+    kubernetes.operator.savepoint.history.max.count: "5"
+    jobmanager.archive.fs.dir: s3://flink/logs
+    jobmanager.execution.failover-strategy: full
+    historyserver.archive.fs.dir: s3://flink/logs
+    #state.backend.fs.checkpointdir: s3://flink/flink-checkpoints
+    s3.access-key: test #your-access-key
+    s3.secret-key: abcd1234 #your-secret-key
+    s3.endpoint: http://minio/ #your-endpoint-hostname (I have used Minio)
+    s3.path.style.access: "true" #needed for minio to work
+    restart-strategy: exponentialdelay
+  serviceAccount: flink
+  jobManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
+  taskManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
+  job:
+    jarURI: {{ .Values.flink.jarURI }}
+    parallelism: {{ .Values.flink.parallelism }}
+    upgradeMode: {{ .Values.flink.upgradeMode }}
+    state: {{ .Values.flink.state }}
