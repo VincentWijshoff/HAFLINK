@@ -1,7 +1,6 @@
 apiVersion: flink.apache.org/v1beta1
 kind: FlinkDeployment
 metadata:
-  namespace: flink
   name: flink-application
 spec:
   restartNonce: 2
