@@ -4,10 +4,20 @@ metadata:
   name: flink-application
 spec:
   restartNonce: 2
-  image: registry.kube-public/flinkappv2
+  image: {{ .Values.flink.image }}
   podTemplate:
      spec:
-       imagePullSecrets:
+        containers:
+          - name: flink-main-container
+            volumeMounts:
+              - mountPath: /flink-data
+                name: flink-volume
+        volumes:
+          - name: flink-volume
+            hostPath:
+              # directory location on host
+              path: /tmp/flink
+        imagePullSecrets:
           - name: registry-creds
   flinkVersion: v1_15
   flinkConfiguration:
@@ -38,18 +48,6 @@ spec:
     resource:
       memory: "2048m"
       cpu: 1
-  podTemplate:
-    spec:
-      containers:
-        - name: flink-main-container
-          volumeMounts:
-            - mountPath: /flink-data
-              name: flink-volume
-      volumes:
-        - name: flink-volume
-          hostPath:
-            # directory location on host
-            path: /tmp/flink
   job:
     jarURI: {{ .Values.flink.jarURI }}
     parallelism: {{ .Values.flink.parallelism }}

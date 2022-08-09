@@ -18,5 +18,5 @@ deploy:
       - name: myapp
         chartPath: charts/haflink
         artifactOverrides: 
-          flink-application.image: flinkappv2
+          flink.image: flinkappv2
 

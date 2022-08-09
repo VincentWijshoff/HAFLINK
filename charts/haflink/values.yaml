@@ -2,4 +2,5 @@ flink:
   jarURI: local:///vincent/workdir/flink/quickstart.jar
   upgradeMode: savepoint # stateless, savepoint !, last-state
   parallelism: 2
+  image: something
   state: running # running, suspended
