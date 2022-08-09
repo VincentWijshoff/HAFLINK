@@ -1,0 +1,68 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: haflink
+spec:
+  kafka:
+    version: 3.2.0
+    replicas: 3
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+      - name: tls
+        port: 9093
+        type: internal
+        tls: true
+    config:
+      transaction.max.timeout.ms: 9000000 
+      offsets.topic.replication.factor: 3
+      transaction.state.log.replication.factor: 3
+      transaction.state.log.min.isr: 2
+      log.message.format.version: "2.7"
+      inter.broker.protocol.version: "2.7"
+    storage:
+      type: jbod
+      volumes:
+      - id: 0
+        type: persistent-claim
+        size: 2Gi
+        deleteClaim: false
+  zookeeper:
+    replicas: 3
+    storage:
+      type: persistent-claim
+      size: 2Gi
+      deleteClaim: false
+  entityOperator:
+    tlsSidecar:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          #cpu: 80m
+          memory: 128Mi
+
+    topicOperator:
+      resources:
+        requests:
+          memory: 512Mi
+          cpu: 300m
+        limits:
+          memory: 512Mi
+          #cpu: 400m
+
+    userOperator:
+      resources:
+        requests:
+          memory: 512Mi
+          cpu: 300m
+        limits:
+          memory: 512Mi
+          #cpu: 400m
+          # cd bin/
+          # bash kafka-console-producer.sh --topic blabla --bootstrap-server yalii-cluster-kafka-bootstrap:9092
+          # bash kafka-console-consumer.sh --topic blabla --bootstrap-server yalii-cluster-kafka-bootstrap:9092 --from-beginning
+          # bash kafka-topics.sh --create --topic blabla --bootstrap-server yalii-cluster-kafka-bootstrap:9092

@@ -1,0 +1,22 @@
+apiVersion: skaffold/v2beta22
+kind: Config
+metadata:
+  name: flinkappv2
+build:
+  local:
+    concurrency: 0
+  artifacts:
+    - image: flinkappv2
+      context: docker/flinkapp
+
+deploy:
+  helm:
+    releases:
+      - name: flink-operator
+        remoteChart: flink-kubernetes-operator
+        repo: https://downloads.apache.org/flink/flink-kubernetes-operator-1.1.0/
+      - name: myapp
+        chartPath: charts/haflink
+        artifactOverrides: 
+          flink-application.image: flinkappv2
+
