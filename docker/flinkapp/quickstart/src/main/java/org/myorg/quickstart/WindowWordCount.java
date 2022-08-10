@@ -20,6 +20,9 @@ public class WindowWordCount {
     public static void main(String[] args) throws Exception {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.enableCheckpointing(5000);
+        //env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
+
 
         KafkaSource<String> source = KafkaSource.<String>builder()
                 .setBootstrapServers("10.43.244.207:9092")

@@ -18,5 +18,4 @@ COPY --from=0 /quickstart/target/quickstart-0.1.jar /vincent/workdir/flink/quick
 RUN mkdir ./plugins/s3-fs-presto
 RUN cp ./opt/flink-s3-fs-presto-1.15.1.jar ./plugins/s3-fs-presto/flink-s3-fs-presto-1.15.1.jar
 
-RUN echo $(ls /vincent/workdir/flink)
-RUN echo $(ls /opt/flink/plugins)
+RUN mkdir /cache && chmod og+rwX /cache
