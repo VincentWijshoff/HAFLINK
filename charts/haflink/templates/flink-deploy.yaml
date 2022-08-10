@@ -30,6 +30,8 @@ spec:
     #high-availability: org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory
     #high-availability.storageDir: s3://flink/ha
     kubernetes.operator.savepoint.history.max.count: "5"
+    kubernetes.operator.job.upgrade.last-state-fallback.enabled: "true"
+    kubernetes.operator.periodic.savepoint.interval: "1000000"
     jobmanager.archive.fs.dir: s3://flink/logs
     jobmanager.execution.failover-strategy: full
     historyserver.archive.fs.dir: s3://flink/logs
