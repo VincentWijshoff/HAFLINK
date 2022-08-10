@@ -20,9 +20,11 @@ public class WindowWordCount {
     public static void main(String[] args) throws Exception {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        // start a checkpoint every 1000 ms
+        env.enableCheckpointing(10000);
 
         KafkaSource<String> source = KafkaSource.<String>builder()
-                .setBootstrapServers("10.43.244.207:9092")
+                .setBootstrapServers("yalii-cluster-kafka-bootstrap:9092")
                 .setTopics("vincent-input")
                 .setGroupId("my-group")
                 .setStartingOffsets(OffsetsInitializer.earliest())
@@ -40,7 +42,7 @@ public class WindowWordCount {
         dataStream.print();
 
         KafkaSink<String> sink = KafkaSink.<String>builder()
-                .setBootstrapServers("10.43.244.207:9092")
+                .setBootstrapServers("yalii-cluster-kafka-bootstrap:9092")
                 .setRecordSerializer(KafkaRecordSerializationSchema.builder()
                         .setTopic("vincent-output")
                         .setValueSerializationSchema(new SimpleStringSchema())
@@ -50,9 +52,6 @@ public class WindowWordCount {
                 .build();
 
         dataStream.sinkTo(sink);
-
-        // start a checkpoint every 1000 ms
-        // env.enableCheckpointing(1000);
 
         env.execute("Window WordCount");
     }

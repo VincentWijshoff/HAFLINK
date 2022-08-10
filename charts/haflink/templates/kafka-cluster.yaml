@@ -1,7 +1,7 @@
 apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
-  name: haflink
+  name: yalii-cluster
 spec:
   kafka:
     version: 3.2.0
@@ -63,6 +63,8 @@ spec:
           memory: 512Mi
           #cpu: 400m
           # cd bin/
-          # bash kafka-console-producer.sh --topic blabla --bootstrap-server yalii-cluster-kafka-bootstrap:9092
-          # bash kafka-console-consumer.sh --topic blabla --bootstrap-server yalii-cluster-kafka-bootstrap:9092 --from-beginning
-          # bash kafka-topics.sh --create --topic blabla --bootstrap-server yalii-cluster-kafka-bootstrap:9092
+          # bash kafka-console-producer.sh --topic vincent-input --bootstrap-server yalii-cluster-kafka-bootstrap:9092
+          # bash kafka-console-consumer.sh --topic vincent-output --bootstrap-server yalii-cluster-kafka-bootstrap:9092 --from-beginning
+          
+          # bash kafka-topics.sh --create --topic vincent-input --bootstrap-server yalii-cluster-kafka-bootstrap:9092
+          # bash kafka-topics.sh --create --topic vincent-output --bootstrap-server yalii-cluster-kafka-bootstrap:9092

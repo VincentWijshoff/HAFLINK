@@ -12,6 +12,9 @@ build:
 deploy:
   helm:
     releases:
+      - name: strimzi
+        remoteChart: strimzi-kafka-operator
+        repo: https://strimzi.io/charts/
       - name: flink-operator
         remoteChart: flink-kubernetes-operator
         repo: https://downloads.apache.org/flink/flink-kubernetes-operator-1.1.0/
@@ -20,3 +23,4 @@ deploy:
         artifactOverrides: 
           flink.image: flinkappv2
 
+# kubectl apply -f https://strimzi.io/install/latest?namespace=<NAMESPACE> -n <NAMESPACE>
