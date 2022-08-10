@@ -4,3 +4,6 @@ flink:
   parallelism: 2
   image: something
   state: running # running, suspended
+  savepointsStored: "\"5\""
+  savepointInterval: 30m
+  deploymentTimeout: 5m

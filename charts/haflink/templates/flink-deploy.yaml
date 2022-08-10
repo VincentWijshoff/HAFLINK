@@ -27,11 +27,14 @@ spec:
     state.backend.rocksdb.localdir: /cache
     state.savepoints.dir: s3://flink/savepoints
     state.checkpoints.dir: s3://flink/checkpoints
-    #high-availability: org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory
-    #high-availability.storageDir: s3://flink/ha
-    kubernetes.operator.savepoint.history.max.count: "5"
+    high-availability: org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory
+    high-availability.storageDir: s3://flink/ha
+    # kubernetes.cluster-id: flink-cluster
+    kubernetes.operator.savepoint.history.max.count: {{ .Values.flink.savepointsStored }}
     kubernetes.operator.job.upgrade.last-state-fallback.enabled: "true"
-    kubernetes.operator.periodic.savepoint.interval: "1000000"
+    kubernetes.operator.periodic.savepoint.interval: {{ .Values.flink.savepointInterval }}
+    kubernetes.operator.deployment.readiness.timeout: {{ .Values.flink.deploymentTimeout }} # <TIMEOUT>
+    kubernetes.operator.deployment.rollback.enabled: "true" # if the deployment is not stable after <TIMEOUT> time, it is rolled back to previous version
     jobmanager.archive.fs.dir: s3://flink/logs
     jobmanager.execution.failover-strategy: full
     historyserver.archive.fs.dir: s3://flink/logs
