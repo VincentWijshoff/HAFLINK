@@ -7,3 +7,5 @@ flink:
   savepointsStored: "\"5\""
   savepointInterval: 30m
   deploymentTimeout: 5m
+pyapp:
+  image: something

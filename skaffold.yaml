@@ -8,6 +8,8 @@ build:
   artifacts:
     - image: flinkappv2
       context: docker/flinkapp
+    - image: pythonapp
+      context: docker/pydata
 
 deploy:
   helm:
@@ -22,5 +24,4 @@ deploy:
         chartPath: charts/haflink
         artifactOverrides: 
           flink.image: flinkappv2
-
-# kubectl apply -f https://strimzi.io/install/latest?namespace=<NAMESPACE> -n <NAMESPACE>
+          pyapp.image: pythonapp
