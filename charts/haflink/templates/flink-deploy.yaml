@@ -18,7 +18,7 @@ spec:
               # directory location on host
               path: /tmp/flink
         imagePullSecrets:
-          - name: registry-creds
+          - name: {{ .Values.imagePullSecrets }}
   flinkVersion: v1_15
   flinkConfiguration:
     taskmanager.numberOfTaskSlots: "2"
@@ -49,10 +49,12 @@ spec:
     resource:
       memory: "2048m"
       cpu: 1
+    replicas: 2
   taskManager:
     resource:
       memory: "2048m"
       cpu: 1
+    replicas: 2
   job:
     jarURI: {{ .Values.flink.jarURI }}
     parallelism: {{ .Values.flink.parallelism }}

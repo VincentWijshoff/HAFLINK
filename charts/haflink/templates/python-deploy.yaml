@@ -1,9 +1,36 @@
-apiVersion: v1
-kind: Pod
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: nginx
+#   labels:
+#     app: nginx
+# spec:
+#   ports:
+#   - port: 80
+#     name: pyapp
+#   clusterIP: None
+#   selector:
+#     app: nginx
+# ---
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
-  name: python-data-producer
+  name: pyapp
 spec:
-  containers:
-    - name: py-container
-      image: {{ .Values.pyapp.image }}
-      imagePullPolicy: Always
+  serviceName: pyapp
+  replicas: {{ .Values.pyapp.replicas }}
+  selector:
+    matchLabels:
+      app: pyapp
+  template:
+    metadata:
+      labels:
+        app: pyapp  
+      name: python-data-producer
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecrets }}
+      containers:
+        - name: py-container
+          image: {{ .Values.pyapp.image }}
+          imagePullPolicy: Always

@@ -1,1 +1,2 @@
-setuptools~=60.2.0
+cryptography==3.4.8
+kafka-python==2.0.2

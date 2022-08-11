@@ -57,7 +57,8 @@ public class WindowWordCount {
                         .setValueSerializationSchema(new SimpleStringSchema())
                         .build()
                 )
-                .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+                .setDeliverGuarantee(DeliveryGuarantee.EXACTLY_ONCE)
+                .setTransactionalIdPrefix("vincent")
                 .build();
 
         dataStream.sinkTo(sink);

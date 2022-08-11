@@ -7,5 +7,6 @@ RUN pip3 install --upgrade pip
 ## Now let's install the requirements of our little application
 WORKDIR /pydata
 RUN pip3 install -e .
+RUN pip3 install kafka-python
 ## And let's specify a startup command for docker containers based on this image.
 CMD ["python3", "main.py"]
