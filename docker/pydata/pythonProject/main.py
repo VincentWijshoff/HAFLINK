@@ -14,9 +14,9 @@ def getRandomWord():
     return wordArray[randint(0, len(wordArray) - 1)]
 
 
-# random time between 1 and 10 minutes
+# random time between 5 and 30 seconds
 def getRandomTime():
-    return randint(60000, 600000)
+    return randint(5, 30)
 
 
 def main():
@@ -24,7 +24,6 @@ def main():
     while 1:
         producer.send('vincent-input', getRandomWord())
         time.sleep(getRandomTime())
-    pass
 
 
 if __name__ == '__main__':

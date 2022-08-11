@@ -9,5 +9,5 @@ flink:
   deploymentTimeout: 5m
 pyapp:
   image: something
-  replicas: 2 # every instance produces a random word every 1-10 minutes (randomised), so 2 instances would average 1 input every 30s - 5min
+  replicas: 2 # every instance produces a random word every 5-30 seconds (randomised)
 imagePullSecrets: registry-creds
