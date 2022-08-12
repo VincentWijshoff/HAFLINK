@@ -16,7 +16,7 @@ spec:
         type: internal
         tls: true
     config:
-      transaction.max.timeout.ms: 9000000 
+      transaction.max.timeout.ms: 9000000 # should be: flink maximum checkpoint duration + flink maximum restart duration; else data may be lost
       offsets.topic.replication.factor: 3
       transaction.state.log.replication.factor: 3
       transaction.state.log.min.isr: 2
@@ -64,7 +64,7 @@ spec:
           #cpu: 400m
           # cd bin/
           # bash kafka-console-producer.sh --topic vincent-input --bootstrap-server yalii-cluster-kafka-bootstrap:9092
-          # bash kafka-console-consumer.sh --topic vincent-output --bootstrap-server yalii-cluster-kafka-bootstrap:9092 --from-beginning
+          # bash kafka-console-consumer.sh --topic vincent-output --bootstrap-server yalii-cluster-kafka-bootstrap:9092 --from-beginning --isolation-level read_committed
           
           # bash kafka-topics.sh --create --topic vincent-input --bootstrap-server yalii-cluster-kafka-bootstrap:9092
           # bash kafka-topics.sh --create --topic vincent-output --bootstrap-server yalii-cluster-kafka-bootstrap:9092
