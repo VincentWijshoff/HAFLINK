@@ -1,0 +1,25 @@
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: kapernikov-pg-cluster
+spec:
+  teamId: "kapernikov"
+  volume:
+    size: 3Gi
+  numberOfInstances: 2
+  users:
+    admin:
+    - superuser
+    - createdb
+    testuser: []
+  databases:
+    ourdatabase: testuser
+  postgresql:
+    version: "14"
+    parameters:
+      shared_buffers: "32MB"
+      max_connections: "40"
+      archive_mode: "on"
+      archive_timeout: 1800s
+      archive_command: /bin/true
+#      log_statement: "all"

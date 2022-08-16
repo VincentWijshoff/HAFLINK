@@ -1,7 +1,5 @@
 package org.myorg.quickstart;
 
-import org.apache.flink.api.common.ExecutionMode;
-import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
@@ -13,21 +11,18 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.jdbc.JdbcExactlyOnceOptions;
+import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
+import org.apache.flink.connector.jdbc.JdbcSink;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
-import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.TwoPhaseCommitSinkFunction;
-import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
-import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.Collector;
-import org.apache.kafka.clients.producer.KafkaProducer;
+import org.postgresql.xa.PGXADataSource;
 
-import java.util.ArrayList;
-import java.util.Objects;
 
 public class WindowWordCount {
 
@@ -35,8 +30,6 @@ public class WindowWordCount {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.enableCheckpointing(300000); // 5 minutes for testing the exactly once behaviour
-//        env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
-
 
         KafkaSource<String> source = KafkaSource.<String>builder()
                 .setBootstrapServers("yalii-cluster-kafka-bootstrap:9092")
@@ -65,6 +58,28 @@ public class WindowWordCount {
                 .setDeliverGuarantee(DeliveryGuarantee.EXACTLY_ONCE)
                 .setTransactionalIdPrefix("vincent")
                 .build();
+
+
+//        postgresql
+        env.fromElements("test1").addSink(JdbcSink.exactlyOnceSink(
+           "insert into public.\"flink-postgres\" (\"data\") values (?)",
+                (statement, item) -> {
+                    statement.setString(1, item);
+                },
+                JdbcExecutionOptions.builder()
+                        .withMaxRetries(0) // needed for exactly once, otherwise duplicates can arise
+                        .build(),
+                JdbcExactlyOnceOptions.builder()
+                        .withTransactionPerConnection(true) // needed in postgres
+                        .build(),
+                () -> {
+                    PGXADataSource xaDataSource = new org.postgresql.xa.PGXADataSource();
+                    xaDataSource.setUrl("jdbc:postgresql://kapernikov-pg-cluster:5432/postgres");
+                    xaDataSource.setUser("testuser");
+                    xaDataSource.setPassword("FaHlwYPjNXwVaqZh98KUgk8lSYj26INZVoS4lJ0ll7ppkqKGiFXgCNaZRyJY2BvY");
+                    return xaDataSource;
+                }
+        ));
 
         dataStream.sinkTo(sink);
 
