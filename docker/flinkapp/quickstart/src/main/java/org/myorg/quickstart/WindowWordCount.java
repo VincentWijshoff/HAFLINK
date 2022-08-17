@@ -11,6 +11,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.jdbc.JdbcConnectionOptions;
 import org.apache.flink.connector.jdbc.JdbcExactlyOnceOptions;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
 import org.apache.flink.connector.jdbc.JdbcSink;
@@ -29,7 +30,7 @@ public class WindowWordCount {
     public static void main(String[] args) throws Exception {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.enableCheckpointing(300000); // 5 minutes for testing the exactly once behaviour
+        env.enableCheckpointing(60000); // 1 minute for testing the exactly once behaviour
 
         KafkaSource<String> source = KafkaSource.<String>builder()
                 .setBootstrapServers("yalii-cluster-kafka-bootstrap:9092")
@@ -59,29 +60,48 @@ public class WindowWordCount {
                 .setTransactionalIdPrefix("vincent")
                 .build();
 
+        dataStream.sinkTo(sink);
 
 //        postgresql
-        env.fromElements("test1").addSink(JdbcSink.exactlyOnceSink(
-           "insert into public.\"flink-postgres\" (\"data\") values (?)",
-                (statement, item) -> {
-                    statement.setString(1, item);
-                },
-                JdbcExecutionOptions.builder()
-                        .withMaxRetries(0) // needed for exactly once, otherwise duplicates can arise
-                        .build(),
-                JdbcExactlyOnceOptions.builder()
-                        .withTransactionPerConnection(true) // needed in postgres
-                        .build(),
-                () -> {
-                    PGXADataSource xaDataSource = new org.postgresql.xa.PGXADataSource();
-                    xaDataSource.setUrl("jdbc:postgresql://kapernikov-pg-cluster:5432/postgres");
-                    xaDataSource.setUser("testuser");
-                    xaDataSource.setPassword("FaHlwYPjNXwVaqZh98KUgk8lSYj26INZVoS4lJ0ll7ppkqKGiFXgCNaZRyJY2BvY");
-                    return xaDataSource;
-                }
-        ));
+        env.fromElements("hey", "dit", "is", "een", "test").addSink(
+                JdbcSink.sink(
+                        "insert into flinklink (\"data\") values (?)",
+                        (statement, book) -> {
+                            statement.setString(1, (String) book);
+                        },
+                        JdbcExecutionOptions.builder()
+                                .withBatchSize(1000)
+                                .withBatchIntervalMs(2000)
+                                .withMaxRetries(3)
+                                .build(),
+                        new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
+                                .withUrl("jdbc:postgresql://kapernikov-pg-cluster:5432/postgres")
+                                .withDriverName("org.postgresql.Driver")
+                                .withUsername("testuser")
+                                .withPassword("bSWQH2o0vHX8LyFy8blakVtZ6TkngDV8xrXNFqmbXTXG1c73oTJHy9xPkk3oMELu")
+                                .build()
+                )).uid("fink application").name("fink application");
 
-        dataStream.sinkTo(sink);
+
+//        env.fromElements("hey", "dit", "is", "een", "test").addSink(JdbcSink.exactlyOnceSink(
+//           "insert into \"flink-postgres\" (\"data\") values (?)",
+//                (statement, item) -> {
+//                     statement.setString(1, item);
+//                },
+//                JdbcExecutionOptions.builder()
+//                        .withMaxRetries(0) // needed for exactly once, otherwise duplicates can arise
+//                        .build(),
+//                JdbcExactlyOnceOptions.builder()
+//                        .withTransactionPerConnection(true) // needed in postgres
+//                        .build(),
+//                () -> {
+//                    PGXADataSource xaDataSource = new org.postgresql.xa.PGXADataSource();
+//                    xaDataSource.setUrl("jdbc:postgresql://kapernikov-pg-cluster-1:5432/postgres");
+//                    xaDataSource.setUser("testuser");
+//                    xaDataSource.setPassword("FaHlwYPjNXwVaqZh98KUgk8lSYj26INZVoS4lJ0ll7ppkqKGiFXgCNaZRyJY2BvY");
+//                    return xaDataSource;
+//                }
+//        ));
 
         env.execute("Window WordCount");
     }
@@ -101,9 +121,6 @@ public class WindowWordCount {
 
         @Override
         public void flatMap(String word, Collector<Tuple2<String, Integer>> out) throws Exception {
-//            for (String word: sentence.split(" ")) {
-//                out.collect(updateWord(word));
-//            }
             Tuple2<String, Integer> current = sum.value();
             if(current.f0 == null){
                 // new word

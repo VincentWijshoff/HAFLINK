@@ -3,7 +3,7 @@ kind: FlinkDeployment
 metadata:
   name: flink-application
 spec:
-  restartNonce: 2
+  restartNonce: 1
   image: {{ .Values.flink.image }}
   podTemplate:
      spec:
