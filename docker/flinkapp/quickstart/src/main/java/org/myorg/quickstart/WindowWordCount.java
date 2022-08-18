@@ -62,7 +62,7 @@ public class WindowWordCount {
 
 //        postgresql
 
-        String insertquery = "insert into flinklink (\"data\") values (?)";
+        String insertquery = "insert into " + Util.getEnvVar("PG_TABLE") + "(\"" + Util.getEnvVar("PG_COLUMN") + "\") values (?)";
 
         JdbcExecutionOptions exOptions = JdbcExecutionOptions.builder()
                 .withBatchIntervalMs(200)             // optional: default = 0, meaning no time-based execution is done
@@ -86,8 +86,8 @@ public class WindowWordCount {
                 () -> {
                     PGXADataSource xaDataSource = new org.postgresql.xa.PGXADataSource();
                     xaDataSource.setUrl("jdbc:postgresql://kapernikov-pg-cluster:5432/postgres");
-                    xaDataSource.setUser("testuser");
-                    xaDataSource.setPassword("3djCmR9JP5iuEwe4ErqSRYS9hoEnZ3d3IiESy2hMinmWe6R4RzGSQvnHsALCRuEj");
+                    xaDataSource.setUser(Util.getEnvVar("PG_USERNAME"));
+                    xaDataSource.setPassword(Util.getEnvVar("PG_PASSWORD"));
                     return xaDataSource;
                 }
         )).uid("JDBC ADD").name("JDBC ADD");

@@ -14,6 +14,7 @@ RUN mvn install
 FROM flink:1.15
 
 COPY --from=0 /quickstart/target/quickstart-0.1.jar /vincent/workdir/flink/quickstart.jar
+COPY --from=0 /quickstart/.env /opt/flink/.env
 
 RUN mkdir ./plugins/s3-fs-presto
 RUN cp ./opt/flink-s3-fs-presto-1.15.1.jar ./plugins/s3-fs-presto/flink-s3-fs-presto-1.15.1.jar
