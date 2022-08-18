@@ -20,6 +20,9 @@ deploy:
       - name: flink-operator
         remoteChart: flink-kubernetes-operator
         repo: https://downloads.apache.org/flink/flink-kubernetes-operator-1.1.0/
+      - name: postgres-operator
+        remoteChart: postgres-operator
+        repo: https://opensource.zalando.com/postgres-operator/charts/postgres-operator/
       - name: myapp
         chartPath: charts/haflink
         artifactOverrides: 
