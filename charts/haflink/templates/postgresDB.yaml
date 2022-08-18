@@ -22,4 +22,5 @@ spec:
       archive_mode: "on"
       archive_timeout: 1800s
       archive_command: /bin/true
+      max_prepared_transactions: "40" # at least as large as max_connections, so that every session can have a prepared transaction pending, needed for exactly once sink
 #      log_statement: "all"

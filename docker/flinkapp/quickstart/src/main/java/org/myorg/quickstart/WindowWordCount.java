@@ -12,6 +12,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.jdbc.JdbcConnectionOptions;
+import org.apache.flink.connector.jdbc.JdbcExactlyOnceOptions;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
 import org.apache.flink.connector.jdbc.JdbcSink;
 import org.apache.flink.connector.jdbc.table.JdbcRowDataInputFormat;
@@ -23,6 +24,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.util.Collector;
+import org.postgresql.xa.PGXADataSource;
 
 
 public class WindowWordCount {
@@ -32,6 +34,8 @@ public class WindowWordCount {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(); // the streaming environment
         env.enableCheckpointing(60000); // 1 minute
 
+//        SOURCE
+
         KafkaSource<String> source = KafkaSource.<String>builder() // get the data from the yalii cluster
                 .setBootstrapServers("yalii-cluster-kafka-bootstrap:9092")
                 .setTopics("vincent-input")
@@ -40,12 +44,11 @@ public class WindowWordCount {
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
 
-        DataStream<String> kafkaStream = env // pocess the data from the kafka statefull
-                .fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source kafka sink")
-                .flatMap(new Splitter())
-                .keyBy(value -> value)
-                .flatMap(new Counter())
-                .flatMap(new Flattener());
+//        SINKS
+
+//        Kafka
+
+        DataStream<String> kafkaStream = createStream(env, source, "Kafka Source kafka sink");
 
         KafkaSink<String> sink = KafkaSink.<String>builder() // out processed date into kafka exactly once
                 .setBootstrapServers("yalii-cluster-kafka-bootstrap:9092")
@@ -63,71 +66,44 @@ public class WindowWordCount {
 //        postgresql
 
         String insertquery = "insert into flinklink (\"data\") values (?)";
-        String removequery = "delete from flinklink where (\"data\") = (?) on conflict (\"data\") do nothing ";
 
         JdbcExecutionOptions exOptions = JdbcExecutionOptions.builder()
                 .withBatchIntervalMs(200)             // optional: default = 0, meaning no time-based execution is done
                 .withBatchSize(1000)                  // optional: default = 5000 values
-                .withMaxRetries(5)                    // optional: default = 3
+                .withMaxRetries(0)                    // needed for exactly once, otherwise duplicates can arise
                 .build();
 
-        JdbcConnectionOptions conOptions = new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
-                .withUrl("jdbc:postgresql://kapernikov-pg-cluster:5432/postgres")
-                .withDriverName("org.postgresql.Driver")
-                .withUsername("testuser")
-                .withPassword("3djCmR9JP5iuEwe4ErqSRYS9hoEnZ3d3IiESy2hMinmWe6R4RzGSQvnHsALCRuEj")
+        JdbcExactlyOnceOptions exOnceOptions = JdbcExactlyOnceOptions.builder()
+                .withTransactionPerConnection(true) // needed in postgres
                 .build();
 
-        DataStream<String> jdbcStream = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source postgres sink")
+        DataStream<String> jdbcStream = createStream(env, source, "Kafka Source postgres sink");
+
+        jdbcStream.addSink(JdbcSink.exactlyOnceSink(
+           insertquery,
+                (statement, item) -> {
+                     statement.setString(1, item);
+                },
+                exOptions,
+                exOnceOptions,
+                () -> {
+                    PGXADataSource xaDataSource = new org.postgresql.xa.PGXADataSource();
+                    xaDataSource.setUrl("jdbc:postgresql://kapernikov-pg-cluster:5432/postgres");
+                    xaDataSource.setUser("testuser");
+                    xaDataSource.setPassword("3djCmR9JP5iuEwe4ErqSRYS9hoEnZ3d3IiESy2hMinmWe6R4RzGSQvnHsALCRuEj");
+                    return xaDataSource;
+                }
+        )).uid("JDBC ADD").name("JDBC ADD");
+
+        env.execute("WordCount");
+    }
+
+    public static DataStream<String> createStream(StreamExecutionEnvironment env, KafkaSource<String> source, String name){
+        return env.fromSource(source, WatermarkStrategy.noWatermarks(), name)
                 .flatMap(new Splitter())
                 .keyBy(value -> value)
                 .flatMap(new Counter())
                 .flatMap(new Flattener());
-
-        jdbcStream // add new count
-                .addSink(JdbcSink.sink(
-                insertquery,
-                (statement, obj) -> {
-                    statement.setString(1, obj);
-                },
-                exOptions,
-                conOptions
-        )).uid("JDBC ADD").name("JDBC ADD");
-
-//        jdbcStream // remove old count
-//                .addSink(JdbcSink.sink(
-//                        removequery,
-//                        (statement, obj) -> {
-//                            statement.setString(1, obj.f0);
-//                        },
-//                        exOptions,
-//                        conOptions
-//                )).uid("JDBC REMOVE").name("JDBC REMOVE");
-
-//        dataStream.print();
-//        env.fromElements("hey", "dit", "is", "een", "test").addSink(JdbcSink.exactlyOnceSink(
-//           "insert into flinklink (\"data\") values (?)",
-//                (statement, item) -> {
-//                     statement.setString(1, item);
-//                },
-//                JdbcExecutionOptions.builder()
-//                        .withMaxRetries(0) // needed for exactly once, otherwise duplicates can arise
-//                        .withBatchSize(1000)
-//                        .withBatchIntervalMs(2000)
-//                        .build(),
-//                JdbcExactlyOnceOptions.builder()
-//                        .withTransactionPerConnection(true) // needed in postgres
-//                        .build(),
-//                () -> {
-//                    PGXADataSource xaDataSource = new org.postgresql.xa.PGXADataSource();
-//                    xaDataSource.setUrl("jdbc:postgresql://kapernikov-pg-cluster:5432/postgres");
-//                    xaDataSource.setUser("testuser");
-//                    xaDataSource.setPassword("bSWQH2o0vHX8LyFy8blakVtZ6TkngDV8xrXNFqmbXTXG1c73oTJHy9xPkk3oMELu");
-//                    return xaDataSource;
-//                }
-//        )).uid("fink application").name("fink application");
-
-        env.execute("WordCount");
     }
 
     public static class Splitter implements FlatMapFunction<String, String> {
@@ -173,16 +149,6 @@ public class WindowWordCount {
         @Override
         public void flatMap(Tuple2<String, Integer> sentence, Collector<String> out) throws Exception {
             out.collect(sentence.toString());
-        }
-    }
-
-    public static class JdbcFlattener implements FlatMapFunction<Tuple2<String, Integer>, Tuple2<String, String>> {
-        @Override
-        public void flatMap(Tuple2<String, Integer> sentence, Collector<Tuple2<String, String>> out) throws Exception {
-            Tuple2<String, String> result = new Tuple2<>("", sentence.toString());
-            sentence = new Tuple2<>(sentence.f0, sentence.f1-1);
-            result.setField(sentence, 0);
-            out.collect(result);
         }
     }
 
