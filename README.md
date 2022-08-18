@@ -3,7 +3,7 @@
  - manueel tabel toevoegen (DBeaver) (done)
  - linken met flink (done)
  - high available zou er al in moeten zitten (done)
- - exactly once maken
+ - exactly once maken (done)
 
 ## later
  - job maken die de topics van kafka maakt bij initialisatie
