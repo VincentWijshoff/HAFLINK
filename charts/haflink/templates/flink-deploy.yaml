@@ -22,23 +22,21 @@ spec:
   flinkVersion: v1_15
   flinkConfiguration:
     taskmanager.numberOfTaskSlots: "2"
-    state.backend: rocksdb
+    state.backend: rocksdb # cascading rollbacks, save storage space as only updates are stored
     state.backend.incremental: "true"
     state.backend.rocksdb.localdir: /cache
     state.savepoints.dir: s3://flink/savepoints
     state.checkpoints.dir: s3://flink/checkpoints
-    high-availability: org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory
+    high-availability: org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory # required for high available
     high-availability.storageDir: s3://flink/ha
-    # kubernetes.cluster-id: flink-cluster
     kubernetes.operator.savepoint.history.max.count: {{ .Values.flink.savepointsStored }}
-    kubernetes.operator.job.upgrade.last-state-fallback.enabled: "true"
+    kubernetes.operator.job.upgrade.last-state-fallback.enabled: "true" # when an error occurs in deployment, it will fallback on last state
     kubernetes.operator.periodic.savepoint.interval: {{ .Values.flink.savepointInterval }}
     kubernetes.operator.deployment.readiness.timeout: {{ .Values.flink.deploymentTimeout }} # <TIMEOUT>
     kubernetes.operator.deployment.rollback.enabled: "true" # if the deployment is not stable after <TIMEOUT> time, it is rolled back to previous version
     jobmanager.archive.fs.dir: s3://flink/logs
     jobmanager.execution.failover-strategy: full
     historyserver.archive.fs.dir: s3://flink/logs
-    #state.backend.fs.checkpointdir: s3://flink/flink-checkpoints
     s3.access-key: test #your-access-key
     s3.secret-key: abcd1234 #your-secret-key
     s3.endpoint: http://minio/ #your-endpoint-hostname (I have used Minio)
