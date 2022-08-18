@@ -61,4 +61,7 @@ The easyest way to check the postgres DB output is to use a tool like DBeaver. L
 ### Flink operation
 To use the visual tool for flink a port forward needs to be set up to the REST service for flink. Once this is setup just navigate to the setup port.
 # TODO
- - alembic gebruiken voor postgres migratie naar nieuwere versie te streamlinen
+ - alembic gebruiken voor postgres migratie naar nieuwere versie te streamlinen (extra)
+ - presentatie maken (klant)
+ - pr op official micrelec repo
+ - custom exactly once sink (extra)
