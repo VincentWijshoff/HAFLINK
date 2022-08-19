@@ -1,11 +1,11 @@
 # HA Flink example
 
-This self contained example runs apache flink jobs on kubernetes with the new flink kubernetes operator. It runs kubernetes in HA mode with a kafka source and jdbc sink, enabling tests with both the HA mode as flink and the full exactly-once semantics of the kafka to jdbc pipeline.
+This self contained example runs apache flink jobs on kubernetes with the [new flink kubernetes operator](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-stable/). It runs kubernetes in HA mode with a kafka source and jdbc sink, enabling tests with both the HA mode as flink and the full exactly-once semantics of the kafka to jdbc pipeline.
 
 # How to run
 ## Requirements
 - 16 GB RAM
-- k3s installed (follow https://github.com/Kapernikov/skaffold-helm-tutorial/blob/main/chapters/01-install-k3s.md)
+- k3s installed (follow [k3s helm setup](https://github.com/Kapernikov/skaffold-helm-tutorial/blob/main/chapters/01-install-k3s.md))
 - k9s (optional, but very usefull)
 
 ## Installation
@@ -66,6 +66,6 @@ The easyest way to check the postgres DB output is to use a tool like DBeaver. L
 To use the visual tool for flink a port forward needs to be set up to the REST service for flink. Once this is setup just navigate to the setup port.
 # TODO
  - alembic gebruiken voor postgres migratie naar nieuwere versie te streamlinen (extra)
- - presentatie maken (klant)
+ - presentatie maken (klant) ([done](https://docs.google.com/presentation/d/1j7TialmcedZ_3gS8Wd0wO4aqUCmGtcR9hBZp2Nxiac0/edit?usp=sharing))
  - pr op official micrelec repo
  - custom exactly once sink (extra)
