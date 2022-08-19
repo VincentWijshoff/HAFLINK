@@ -1,3 +1,7 @@
+# HA Flink example
+
+This self contained example runs apache flink jobs on kubernetes with the new flink kubernetes operator. It runs kubernetes in HA mode with a kafka source and jdbc sink, enabling tests with both the HA mode as flink and the full exactly-once semantics of the kafka to jdbc pipeline.
+
 # How to run
 ## Requirements
 - 16 GB RAM
