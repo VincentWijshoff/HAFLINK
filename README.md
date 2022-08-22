@@ -22,7 +22,7 @@ and going into the specified namespace. These things should happen:
 
 - the flink kubernetes operator should be created
 - the postgres operator should be created
-- the postgres clusters should be created
+- the postgres clusters should be created (may not happen first time, run command again after the rest is installed)
 - a minio instance should be created
 - the pyapp instances should apear and error because not all instances have been created yet (this will fix itself later on)
 - the kafka zookeepers should be created
@@ -53,7 +53,7 @@ again. For every update to the application this same command can be run to upgra
 
 The application will push data into a kafka topic and into the postgres DB, both can be checked.
 ### kafka output
-To check the output to the kafka topic (default: vincent-output), open a shel on any of the kafka instances via k9s and type:
+To check the output to the kafka topic (default: vincent-output), open a shell on any of the kafka instances via k9s and type:
 ```
 cd bin/
 bash kafka-console-consumer.sh --topic vincent-output --bootstrap-server yalii-cluster-kafka-bootstrap:9092 --from-beginning --isolation-level read_committed
